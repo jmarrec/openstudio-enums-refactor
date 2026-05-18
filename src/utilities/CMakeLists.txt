@@ -1,0 +1,22 @@
+set(target_name openstudio_utilities)
+
+set(${target_name}_src
+    UtilitiesAPI.hpp
+    core/Enum.hpp
+    bcl/BCLEnums.hpp
+)
+
+
+add_library(${target_name}
+  OBJECT
+  ${${target_name}_src}
+)
+set_target_properties(${target_name} PROPERTIES LINKER_LANGUAGE CXX)
+
+set(${target_name}_depends
+    fmt::fmt
+    boost::boost
+)
+
+target_link_libraries(${target_name} PUBLIC ${${target_name}_depends})
+target_compile_definitions(${target_name} PRIVATE openstudio_utilities_EXPORTS SHARED_OS_LIBS)
