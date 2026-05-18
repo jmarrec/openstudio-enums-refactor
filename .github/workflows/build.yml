@@ -16,7 +16,7 @@ jobs:
       # fail-fast: Default is true, switch to false to allow one platform to fail and still run others
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-24.04, ubuntu-24.04-arm, macos-26, macos-26-intel, windows-2022]
 
     steps:
     - uses: actions/checkout@v6
@@ -64,11 +64,40 @@ jobs:
           conan profile show
           echo "core:non_interactive = True" >> $HOME/global.conf
           echo "core.download:parallel = {{os.cpu_count() - 2}}" >> $HOME/global.conf
+          conan remote add nrel-v2 https://conan.openstudio.net/artifactory/api/conan/conan-v2
 
     - name: Configure CMake And Build
       shell: bash
       run: |
         set -x
         conan install . --build=missing -c tools.cmake.cmaketoolchain:generator=Ninja -s compiler.cppstd=20 -s build_type=Debug --output-folder=build
+        cmake --preset conan-debug
+        cmake --build --preset conan-debug
+
+    - name: Configure CMake And Build on Windows
+      if: runner.os == 'Windows'
+      working-directory: ${{ inputs.build-directory }}
+      shell: pwsh
+      run: |
+        $ErrorActionPreference = 'stop'
+        $PSNativeCommandUseErrorActionPreference = $true
+
+        function Begin-Group {
+            param([string]$Title)
+            Write-Output "::group::`e[93m$Title`e[0m"
+        }
+
+        switch ($env:PROCESSOR_ARCHITECTURE) {
+          "AMD64" { $target_arch = "x64" }
+          "ARM64" { $target_arch = "arm64" }
+          default { throw "Unknown architecture: $env:PROCESSOR_ARCHITECTURE" }
+        }
+
+        Begin-Group "Entering a VS Dev Shell"
+        Import-Module "$env:MSVC_DIR\Common7\Tools\Microsoft.VisualStudio.DevShell.dll"
+        Enter-VsDevShell -VsInstallPath "$env:MSVC_DIR" -SkipAutomaticLocation -devCmdArguments "-arch=$target_arch"
+        Write-Output "::endgroup::"
+
+        conan install .. --build=missing -c tools.cmake.cmaketoolchain:generator=Ninja -s compiler.cppstd=20 -s build_type=Debug --output-folder=build
         cmake --preset conan-debug
         cmake --build --preset conan-debug
