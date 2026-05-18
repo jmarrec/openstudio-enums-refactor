@@ -84,13 +84,42 @@ jobs:
           rm -Rf $CONAN_PROFILE_DEFAULT.bak || true
           conan profile show
 
-    - name: Configure CMake And Build
+    - name: Configure CMake And Build on Unix
+      if: runner.os != 'Windows'
       shell: bash
       run: |
         set -x
         conan install . --build=missing -c tools.cmake.cmaketoolchain:generator=Ninja -s compiler.cppstd=20 -s build_type=${{ env.BUILD_TYPE }} --output-folder=build
         cmake --preset conan-release
         cmake --build --preset conan-release
+
+    - name: Configure CMake And Build on Windows
+      if: runner.os == 'Windows'
+      working-directory: ${{ inputs.build-directory }}
+      shell: pwsh
+      run: |
+        $ErrorActionPreference = 'stop'
+        $PSNativeCommandUseErrorActionPreference = $true
+
+        function Begin-Group {
+            param([string]$Title)
+            Write-Output "::group::`e[93m$Title`e[0m"
+        }
+
+        switch ($env:PROCESSOR_ARCHITECTURE) {
+          "AMD64" { $target_arch = "x64" }
+          "ARM64" { $target_arch = "arm64" }
+          default { throw "Unknown architecture: $env:PROCESSOR_ARCHITECTURE" }
+        }
+
+        Begin-Group "Entering a VS Dev Shell"
+        Import-Module "$env:MSVC_DIR\Common7\Tools\Microsoft.VisualStudio.DevShell.dll"
+        Enter-VsDevShell -VsInstallPath "$env:MSVC_DIR" -SkipAutomaticLocation -devCmdArguments "-arch=$target_arch"
+        Write-Output "::endgroup::"
+
+        conan install .. --build=missing -c tools.cmake.cmaketoolchain:generator=Ninja -s compiler.cppstd=20 -s build_type=Debug --output-folder=build
+        cmake --preset conan-debug
+        cmake --build --preset conan-debug
 
     - name: Run the executable
       shell: bash
