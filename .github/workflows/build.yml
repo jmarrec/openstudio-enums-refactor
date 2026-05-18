@@ -140,6 +140,6 @@ jobs:
 
     - name: Run the executable
       shell: bash
-      working-directory: build
+      working-directory: build/Products
       run: |
         ./main
