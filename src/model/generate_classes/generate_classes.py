@@ -14,6 +14,12 @@ CMAKE_FILE = MODEL_DIR / "CMakeLists.txt"
 CMAKE_START = "# Start Additions from the python script"
 CMAKE_END = "# End Additions from the python script"
 
+GENERATED_DIR = MODEL_DIR / "generated"
+GENERATED_DIR.mkdir(exist_ok=True)
+
+
+def idd_to_class_name(idd_object_type: str) -> str:
+    return idd_object_type.replace("OS:", "").replace(":", "").replace("-", "")
 
 def parse_idd_object_types_from_factory() -> list[str]:
     text = IDD_FACTORY_CXX.read_text()
@@ -33,19 +39,20 @@ def render_templates(idd_object_type: str) -> None:
     for ext in ("hpp", "cpp"):
         template = env.get_template(f"template.{ext}.j2")
         output = template.render(idd_object_type=idd_object_type)
-        class_name = idd_object_type.replace("OS:", "").replace(":", "")
-        (MODEL_DIR / f"{class_name}.{ext}").write_text(output)
+        class_name = idd_to_class_name(idd_object_type=idd_object_type)
+        (GENERATED_DIR / f"{class_name}.{ext}").write_text(output)
         print(f"  wrote {class_name}.{ext}")
 
 
 def update_cmake(idd_object_types: list[str]) -> None:
     text = CMAKE_FILE.read_text()
 
+    rel_dir = GENERATED_DIR.relative_to(MODEL_DIR)
     entries = []
-    for idd in idd_object_types:
-        class_name = idd.replace("OS:", "").replace(":", "")
-        entries.append(f"  {class_name}.hpp")
-        entries.append(f"  {class_name}.cpp")
+    for idd_object_type in idd_object_types:
+        class_name = idd_to_class_name(idd_object_type=idd_object_type)
+        entries.append(f"  {rel_dir}/{class_name}.hpp")
+        entries.append(f"  {rel_dir}/{class_name}.cpp")
 
     block = f"{CMAKE_START}\n" + "\n".join(entries) + f"\n  {CMAKE_END}"
 
@@ -72,6 +79,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     all_types = parse_idd_object_types_from_factory()
+    # Remove DefaultScheduleSet which we already added
+    all_types = [t for t in all_types if t != "OS:DefaultScheduleSet"]
     idd_object_types = all_types if args.num_objects == -1 else all_types[:args.num_objects]
     print(f"Generating {len(idd_object_types)} of {len(all_types)} OS: types found in IddFactory.cxx")
 

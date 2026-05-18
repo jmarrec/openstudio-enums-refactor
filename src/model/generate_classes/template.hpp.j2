@@ -1,4 +1,4 @@
-{%- set class_name = idd_object_type | replace("OS:", "") | replace(":", "") -%}
+{%- set class_name = idd_object_type | replace("OS:", "") | replace(":", "") | replace("-", "") -%}
 /***********************************************************************************************************************
 *  OpenStudio(R), Copyright (c) Alliance for Energy Innovation, LLC.
 *  See also https://openstudio.net/license
@@ -7,8 +7,8 @@
 #ifndef MODEL_{{ class_name | upper }}_HPP
 #define MODEL_{{ class_name | upper }}_HPP
 
-#include "ModelAPI.hpp"
-#include "ModelObject.hpp"
+#include "../ModelAPI.hpp"
+#include "../ModelObject.hpp"
 
 namespace openstudio {
 

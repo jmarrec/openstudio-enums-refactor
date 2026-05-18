@@ -111,8 +111,8 @@
                                                                                                            \
    private:                                                                                                \
     friend class EnumBase<_enum_name>;                                                                     \
-    typedef std::pair<std::string, int> PT;                                                                \
-    typedef std::vector<PT> VecType;                                                                       \
+    using PT = std::pair<std::string, int>;                                                                \
+    using VecType = std::vector<PT>;                                                                       \
     static VecType buildStringVec(bool isd) {                                                              \
       struct evalue                                                                                        \
       {                                                                                                    \
@@ -245,8 +245,8 @@
  *
  *  private:
  *   friend class EnumBase<MyEnumerationComplex>;
- *   typedef std::pair<std::string, int> PT;
- *   typedef std::vector<PT> VecType;
+ *   using PT = std::pair<std::string, int>;
+ *   using VecType = std::vector<PT>;
  *
  *   static VecType buildStringVec(bool isd)
  *   {

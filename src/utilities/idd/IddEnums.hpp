@@ -16,6 +16,10 @@
 
 namespace openstudio {
 
+#ifdef USE_NEW_ENUMS
+struct UTILITIES_API IddFileType;
+struct UTILITIES_API IddObjectType;
+#else
 /** \class IddFileType
  *  \brief Enumeration of the types of \link openstudio::IddFile IddFile\endlink available
  *  through OpenStudio.
@@ -25,10 +29,10 @@ namespace openstudio {
  *  rest of the enumeration values designate subsets of the \link openstudio::IddFactory
  *  IddFactory\endlink (the current versions of the EnergyPlus and OpenStudio IDDs, and all
  *  objects in the factory). */
-#ifdef SWIG
+#  ifdef SWIG
   // cppcheck-suppress syntaxError
   OPENSTUDIO_ENUM(IddFileType, )
-#else
+#  else
 struct UTILITIES_API IddFileType : public ::EnumBase<IddFileType>
 {
  public:
@@ -58,7 +62,7 @@ inline std::ostream& operator<<(std::ostream& os, const IddFileType& e) {
 }
 
 using OptionalIddFileType = boost::optional<IddFileType>;
-#endif
+#  endif
 /** \relates IddFileType */
 using IddFileTypeVector = std::vector<IddFileType>;
 /** \relates IddFileType */
@@ -82,9 +86,9 @@ using OptionalIddFileTypeSet = boost::optional<std::set<IddFileType>>;
  *  types are derived from the IDD files used to create \link openstudio::IddFactory
  *  IddFactory\endlink. See the OPENSTUDIO_ENUM documentation in utilities/core/Enum.hpp.
  * */
-#ifdef SWIG
+#  ifdef SWIG
   OPENSTUDIO_ENUM(IddObjectType, )
-#else
+#  else
 struct UTILITIES_API IddObjectType : public ::EnumBase<IddObjectType>
 {
  public:
@@ -114,7 +118,7 @@ inline std::ostream& operator<<(std::ostream& os, const IddObjectType& e) {
 }
 
 using OptionalIddObjectType = boost::optional<IddObjectType>;
-#endif
+#  endif
 /** \relates IddObjectType */
 using IddObjectTypeVector = std::vector<IddObjectType>;
 /** \relates IddObjectType */
@@ -125,6 +129,7 @@ using OptionalIddObjectTypeVector = boost::optional<std::vector<IddObjectType>>;
 /** \relates IddObjectType */
 using OptionalIddObjectTypeSet = boost::optional<std::set<IddObjectType>>;
 
+#endif
 }  // namespace openstudio
 
 #endif  // UTILITIES_IDD_IDDENUMS_HXX

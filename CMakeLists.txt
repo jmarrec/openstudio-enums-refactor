@@ -7,6 +7,9 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 project(test_enum VERSION 0.1.0 LANGUAGES CXX)
 
+option(USE_NEW_ENUMS "Use new enum implementation" OFF)
+option(ENABLE_PCH "Enable Precompiled Headers" OFF)
+
 find_package(fmt)
 find_package(Boost)
 
@@ -56,6 +59,13 @@ add_subdirectory(src/generateiddfactory)
 add_subdirectory(src/utilities)
 add_subdirectory(src/model)
 add_subdirectory(src/lib)
+
+
+if(ENABLE_PCH)
+  target_precompile_headers(openstudio_model PRIVATE
+    src/model/ModelObject.hpp
+  )
+endif()
 
 add_executable(main
   src/main.cpp

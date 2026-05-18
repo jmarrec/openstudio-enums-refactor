@@ -10,6 +10,10 @@
 
 #include "../utilities/idd/IddEnums.hpp"
 
+#ifdef USE_NEW_ENUMS
+#  include <utilities/idd/IddEnums.hxx>
+#endif
+
 namespace openstudio {
 
 namespace model {

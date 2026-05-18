@@ -1,4 +1,10 @@
 # Fake having produced the IddEnums.hxx file
-configure_file(IddEnums.hxx "${CMAKE_CURRENT_BINARY_DIR}/../utilities/idd/IddEnums.hxx" COPYONLY)
-configure_file(IddFactory.hxx "${CMAKE_CURRENT_BINARY_DIR}/../utilities/idd/IddFactory.hxx" COPYONLY)
-configure_file(IddFactory.cxx "${CMAKE_CURRENT_BINARY_DIR}/../utilities/idd/IddFactory.cxx" COPYONLY)
+if(USE_NEW_ENUMS)
+  message(STATUS "Using new enum implementation")
+  configure_file(IddEnums_new.hxx "${CMAKE_CURRENT_BINARY_DIR}/../utilities/idd/IddEnums.hxx" COPYONLY)
+else()
+  message(STATUS "Using old enum implementation")
+  configure_file(IddEnums.hxx "${CMAKE_CURRENT_BINARY_DIR}/../utilities/idd/IddEnums.hxx" COPYONLY)
+  configure_file(IddFactory.hxx "${CMAKE_CURRENT_BINARY_DIR}/../utilities/idd/IddFactory.hxx" COPYONLY)
+  configure_file(IddFactory.cxx "${CMAKE_CURRENT_BINARY_DIR}/../utilities/idd/IddFactory.cxx" COPYONLY)
+endif()

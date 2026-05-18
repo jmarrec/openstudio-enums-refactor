@@ -1,5 +1,5 @@
-{%- set class_name = idd_object_type | replace("OS:", "") | replace(":", "") -%}
-{%- set idd_object_type_enum = idd_object_type | replace(":", "_") -%}
+{%- set class_name = idd_object_type | replace("OS:", "") | replace(":", "") | replace("-", "") -%}
+{%- set idd_object_type_enum = idd_object_type | replace(":", "_") | replace("-", "") -%}
 /***********************************************************************************************************************
 *  OpenStudio(R), Copyright (c) Alliance for Energy Innovation, LLC.
 *  See also https://openstudio.net/license
