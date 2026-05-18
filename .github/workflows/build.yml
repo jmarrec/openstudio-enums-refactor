@@ -74,6 +74,7 @@ jobs:
           echo "Enabling conan revisions and setting parallel_download"
           conan profile detect --force --name default
           conan profile path default
+          echo "Initial conan profile:"
           conan profile show
           echo "core:non_interactive = True" >> $HOME/global.conf
           echo "core.download:parallel = {{os.cpu_count() - 2}}" >> $HOME/global.conf
@@ -82,6 +83,7 @@ jobs:
           sed -i.bak 's/cppstd=.*$/cppstd=20/g' $CONAN_PROFILE_DEFAULT
           sed -i.bak 's/build_type=.*$/build_type=${{ env.BUILD_TYPE }}/g' $CONAN_PROFILE_DEFAULT
           rm -Rf $CONAN_PROFILE_DEFAULT.bak || true
+          echo "Updated conan profile:"
           conan profile show
 
     - name: Configure CMake And Build on Unix
@@ -103,7 +105,6 @@ jobs:
 
     - name: Configure CMake And Build on Windows
       if: runner.os == 'Windows'
-      working-directory: ${{ inputs.build-directory }}
       shell: pwsh
       run: |
         $ErrorActionPreference = 'stop'
@@ -126,7 +127,7 @@ jobs:
         Write-Output "::endgroup::"
 
         Begin-Group "Conan install"
-        conan install .. --build=missing -c tools.cmake.cmaketoolchain:generator=Ninja -s compiler.cppstd=20 -s build_type=Debug --output-folder=build
+        conan install . --build=missing -c tools.cmake.cmaketoolchain:generator=Ninja -s compiler.cppstd=20 -s build_type=Debug --output-folder=build
         Write-Output "::endgroup::"
 
         Begin-Group "CMake configure"
