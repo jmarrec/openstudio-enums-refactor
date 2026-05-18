@@ -9,6 +9,9 @@ on:
   pull_request:
     branches: [ main ]
 
+env:
+  BUILD_TYPE: Release
+
 jobs:
   build:
     runs-on: ${{ matrix.os }}
@@ -17,6 +20,13 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-24.04, ubuntu-24.04-arm, macos-26, macos-26-intel, windows-2022]
+        # For macos-26, include /Applications/Xcode_26.4.1.app SDKROOT
+        include:
+          - os: macos-26
+            SDKROOT: /Applications/Xcode_26.4.1.app
+          - os: macos-26-intel
+            SDKROOT: /Applications/Xcode_26.4.1.app
+
 
     steps:
     - uses: actions/checkout@v6
@@ -35,10 +45,12 @@ jobs:
         elif [ "$RUNNER_OS" == "macOS" ]; then
           echo "Using brew to install ninja"
           brew install ninja
-          echo "Setting MACOSX_DEPLOYMENT_TARGET to 13.0"
-          echo "MACOSX_DEPLOYMENT_TARGET=13.0" >> $GITHUB_ENV
-          echo "Adding SDKROOT to GITHUB_ENV"
-          echo "SDKROOT=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk" >> $GITHUB_ENV
+          echo "Setting MACOSX_DEPLOYMENT_TARGET to 26.0"
+          echo "MACOSX_DEPLOYMENT_TARGET=26.0" >> $GITHUB_ENV
+          sudo xcode-select -switch "${{ matrix.SDKROOT }}"
+          clang --version
+          sdk_path=$(xcrun --sdk macosx --show-sdk-path)
+          echo "sdk_path=$sdk_path" >> $GITHUB_ENV
         elif [ "$RUNNER_OS" == "Window" ]; then
           choco install ninja
           # C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise
@@ -54,6 +66,7 @@ jobs:
         echo "NPROC=$NPROC" >> $GITHUB_ENV
 
     - name: Install conan
+      shell: bash
       run: |
           python --version
           pip install conan
@@ -65,14 +78,19 @@ jobs:
           echo "core:non_interactive = True" >> $HOME/global.conf
           echo "core.download:parallel = {{os.cpu_count() - 2}}" >> $HOME/global.conf
           conan remote add nrel-v2 https://conan.openstudio.net/artifactory/api/conan/conan-v2
+          CONAN_PROFILE_DEFAULT=$HOME/.conan2/profiles/default
+          sed -i.bak 's/cppstd=.*$/cppstd=20/g' $CONAN_PROFILE_DEFAULT
+          sed -i.bak 's/build_type=.*$/build_type=${{ env.BUILD_TYPE }}/g' $CONAN_PROFILE_DEFAULT
+          rm -Rf $CONAN_PROFILE_DEFAULT.bak || true
+          conan profile show
 
     - name: Configure CMake And Build
       shell: bash
       run: |
         set -x
-        conan install . --build=missing -c tools.cmake.cmaketoolchain:generator=Ninja -s compiler.cppstd=20 -s build_type=Debug --output-folder=build
-        cmake --preset conan-debug
-        cmake --build --preset conan-debug
+        conan install . --build=missing -c tools.cmake.cmaketoolchain:generator=Ninja -s compiler.cppstd=20 -s build_type=${{ env.BUILD_TYPE }} --output-folder=build
+        cmake --preset conan-release
+        cmake --build --preset conan-release
 
     - name: Configure CMake And Build on Windows
       if: runner.os == 'Windows'
