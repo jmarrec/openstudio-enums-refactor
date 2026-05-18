@@ -1,0 +1,74 @@
+name: C++ CI
+
+on:
+  push:
+    branches: [ main ]
+    # Sequence of patterns matched against refs/tags
+    tags:
+      - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      # fail-fast: Default is true, switch to false to allow one platform to fail and still run others
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    steps:
+    - uses: actions/checkout@v6
+
+    - uses: actions/setup-python@v6
+      with:
+        python-version: '3.12'
+
+    - name: Install deps
+      shell: bash
+      run: |
+        if [ "$RUNNER_OS" == "Linux" ]; then
+          echo "Using apt to install ninja"
+          sudo apt update
+          sudo apt -y -qq install ninja-build
+        elif [ "$RUNNER_OS" == "macOS" ]; then
+          echo "Using brew to install ninja"
+          brew install ninja
+          echo "Setting MACOSX_DEPLOYMENT_TARGET to 13.0"
+          echo "MACOSX_DEPLOYMENT_TARGET=13.0" >> $GITHUB_ENV
+          echo "Adding SDKROOT to GITHUB_ENV"
+          echo "SDKROOT=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk" >> $GITHUB_ENV
+        elif [ "$RUNNER_OS" == "Window" ]; then
+          choco install ninja
+          # C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise
+          MSVC_DIR=$(cmd.exe /c "vswhere -products * -requires Microsoft.Component.MSBuild -property installationPath -latest")
+          echo "Latest is: $MSVC_DIR"
+          echo "MSVC_DIR=$MSVC_DIR" >> $GITHUB_ENV
+          # add folder containing vcvarsall.bat
+          echo "$MSVC_DIR\VC\Auxiliary\Build" >> $GITHUB_PATH
+        fi;
+
+        NPROC=$(nproc 2>/dev/null || sysctl -n hw.logicalcpu)
+        echo "There are $NPROC threads available"
+        echo "NPROC=$NPROC" >> $GITHUB_ENV
+
+    - name: Install conan
+      run: |
+          python --version
+          pip install conan
+          conan --version
+          echo "Enabling conan revisions and setting parallel_download"
+          conan profile detect --force --name default
+          conan profile path default
+          conan profile show
+          echo "core:non_interactive = True" >> $HOME/global.conf
+          echo "core.download:parallel = {{os.cpu_count() - 2}}" >> $HOME/global.conf
+
+    - name: Configure CMake And Build
+      shell: bash
+      run: |
+        set -x
+        conan install . --build=missing -c tools.cmake.cmaketoolchain:generator=Ninja -s compiler.cppstd=20 -s build_type=Debug --output-folder=build
+        cmake --preset conan-debug
+        cmake --build --preset conan-debug
