@@ -53,9 +53,9 @@ jobs:
           echo "sdk_path=$sdk_path" >> $GITHUB_ENV
         elif [ "$RUNNER_OS" == "Windows" ]; then
           choco install ninja
-          # C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise
-          MSVC_DIR=$(cmd.exe /c "vswhere -products * -requires Microsoft.Component.MSBuild -property installationPath -latest")
-          echo "Latest is: $MSVC_DIR"
+          # C:\Program Files\Microsoft Visual Studio\2022\Enterprise
+          MSVC_DIR=$(vswhere -products '*' -requires Microsoft.Component.MSBuild -latest -property installationPath)
+          echo "Latest MSVC_DIR is: $MSVC_DIR"
           echo "MSVC_DIR=$MSVC_DIR" >> $GITHUB_ENV
           # add folder containing vcvarsall.bat
           echo "$MSVC_DIR\VC\Auxiliary\Build" >> $GITHUB_PATH
@@ -88,10 +88,18 @@ jobs:
       if: runner.os != 'Windows'
       shell: bash
       run: |
-        set -x
+        begin_group() { echo -e "::group::\033[93m$1\033[0m"; }
+
+        begin_group "Conan install"
         conan install . --build=missing -c tools.cmake.cmaketoolchain:generator=Ninja -s compiler.cppstd=20 -s build_type=${{ env.BUILD_TYPE }} --output-folder=build
+        echo "::endgroup::"
+        begin_group "CMake configure"
         cmake --preset conan-release
+        echo "::endgroup::"
+
+        begin_group "Build"
         cmake --build --preset conan-release
+        echo "::endgroup::"
 
     - name: Configure CMake And Build on Windows
       if: runner.os == 'Windows'
@@ -117,9 +125,17 @@ jobs:
         Enter-VsDevShell -VsInstallPath "$env:MSVC_DIR" -SkipAutomaticLocation -devCmdArguments "-arch=$target_arch"
         Write-Output "::endgroup::"
 
+        Begin-Group "Conan install"
         conan install .. --build=missing -c tools.cmake.cmaketoolchain:generator=Ninja -s compiler.cppstd=20 -s build_type=Debug --output-folder=build
+        Write-Output "::endgroup::"
+
+        Begin-Group "CMake configure"
         cmake --preset conan-debug
+        Write-Output "::endgroup::"
+
+        Begin-Group "Build"
         cmake --build --preset conan-debug
+        Write-Output "::endgroup::"
 
     - name: Run the executable
       shell: bash
