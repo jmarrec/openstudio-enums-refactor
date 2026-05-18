@@ -32,6 +32,27 @@ if(MSVC)
 
 endif()
 
+# Enable runtime checking features
+if(CMAKE_CXX_COMPILER_ID MATCHES ".*Clang")
+
+  option(ENABLE_BUILD_TIME_TRACE "Enable -ftime-trace feature on clang" OFF)
+  if (ENABLE_BUILD_TIME_TRACE)
+    add_definitions(-ftime-trace)
+  endif()
+
+  mark_as_advanced(ENABLE_BUILD_TIME_TRACE)
+
+endif()
+
+# Add to include path
+
+# Project source directory
+include_directories("${PROJECT_SOURCE_DIR}/src/")
+
+# Project binary directory
+include_directories("${PROJECT_BINARY_DIR}/src/")
+
+add_subdirectory(src/generateiddfactory)
 add_subdirectory(src/utilities)
 add_subdirectory(src/model)
 add_subdirectory(src/lib)

@@ -16,3 +16,11 @@ target_link_libraries(
  fmt::fmt
 )
 target_compile_definitions(openstudiolib INTERFACE "-DSHARED_OS_LIBS")
+
+target_include_directories(
+  openstudiolib
+  INTERFACE
+  $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/src>
+  $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}>
+  $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/src>
+)
