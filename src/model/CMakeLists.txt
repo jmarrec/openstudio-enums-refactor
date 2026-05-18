@@ -1,8 +1,13 @@
 set(target_name openstudio_model)
 
 set(${target_name}_src
+  ModelObject.hpp
+  ModelObject.cpp
   DefaultScheduleSet.hpp
   DefaultScheduleSet.cpp
+
+  # Start Additions from the python script
+  # End Additions from the python script
 )
 
 add_library(${target_name}

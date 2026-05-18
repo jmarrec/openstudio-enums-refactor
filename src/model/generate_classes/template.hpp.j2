@@ -1,0 +1,30 @@
+{%- set class_name = idd_object_type | replace("OS:", "") | replace(":", "") -%}
+/***********************************************************************************************************************
+*  OpenStudio(R), Copyright (c) Alliance for Energy Innovation, LLC.
+*  See also https://openstudio.net/license
+***********************************************************************************************************************/
+
+#ifndef MODEL_{{ class_name | upper }}_HPP
+#define MODEL_{{ class_name | upper }}_HPP
+
+#include "ModelAPI.hpp"
+#include "ModelObject.hpp"
+
+namespace openstudio {
+
+struct IddObjectType;
+
+namespace model {
+
+class MODEL_API {{ class_name }} : public ModelObject
+{
+ public:
+  explicit {{ class_name }}();
+
+  static IddObjectType iddObjectType();
+};
+
+}  // namespace model
+}  // namespace openstudio
+
+#endif  // MODEL_{{ class_name | upper }}_HPP

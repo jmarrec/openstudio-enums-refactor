@@ -1,0 +1,22 @@
+{%- set class_name = idd_object_type | replace("OS:", "") | replace(":", "") -%}
+{%- set idd_object_type_enum = idd_object_type | replace(":", "_") -%}
+/***********************************************************************************************************************
+*  OpenStudio(R), Copyright (c) Alliance for Energy Innovation, LLC.
+*  See also https://openstudio.net/license
+***********************************************************************************************************************/
+
+#include "{{ class_name }}.hpp"
+
+#include <utilities/idd/IddEnums.hxx>
+
+namespace openstudio {
+namespace model {
+
+{{ class_name }}::{{ class_name }}() : ModelObject({{ class_name }}::iddObjectType()) {}
+
+IddObjectType {{ class_name }}::iddObjectType() {
+  return {IddObjectType::{{ idd_object_type_enum }}};
+}
+
+}  // namespace model
+}  // namespace openstudio

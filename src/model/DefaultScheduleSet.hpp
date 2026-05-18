@@ -8,6 +8,9 @@
 
 #include "ModelAPI.hpp"
 
+#include "ModelObject.hpp"
+
+#include "../utilities/idd/IddEnums.hpp"
 #include "../utilities/core/Enum.hpp"
 
 namespace openstudio {
@@ -31,10 +34,12 @@ namespace model {
 
 // clang-format on
 
-class MODEL_API DefaultScheduleSet
+class MODEL_API DefaultScheduleSet : public ModelObject
 {
  public:
   explicit DefaultScheduleSet();
+
+  static IddObjectType iddObjectType();
 
   std::string getDefaultSchedule(const DefaultScheduleType& defaultScheduleType) const;
 };
